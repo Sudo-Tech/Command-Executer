@@ -1,0 +1,43 @@
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Scanner;
+
+public static List<String> exec(String com) throws IOException, InterruptedException {
+	//command setup
+	List<String> command = new ArrayList<String>();
+	command.add("");
+	int arg = 0;
+	for (char i: com.toCharArray()) {
+		if (com.equals(' ')) {
+			arg++;
+			command.add("");
+		} else
+			command.set(arg, command.get(arg) + i);
+	}
+	
+	//run command
+	ProcessBuilder cmd = new ProcessBuilder(command);
+	Process proc = cmd.start();
+	proc.waitFor();
+			//get output
+	List<String> out = new ArrayList<String>();
+	Scanner inStream = new Scanner(proc.getInputStream());
+	try {
+		while (true)
+			out.add(inStream.nextLine());
+	} catch (NoSuchElementException e) {
+		inStream.close();
+		Scanner errStream = new Scanner(proc.getErrorStream());
+		try {
+			while (true)
+				out.add(errStream.nextLine());
+		} catch (NoSuchElementException e1) {
+			errStream.close();
+			if (out.isEmpty())
+				out.add("");
+			return out;
+		}
+	}
+}
